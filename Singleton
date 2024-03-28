@@ -1,0 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+public class Script : MonoBehaviour
+{
+
+  /* 
+     싱글 톤 패턴은 Find("오브젝트 이름")으로 오브젝트를 여러개 생성 하여 찾기엔 부화가 일어나기에
+     싱글 톤 패턴으로 인해 단 하나의 클래스만 생성하여 불러와 여러 개를 사용 할 수 있다.
+     이는 부화를 줄여준다.(Find가 한 번만 써서 이용하기에)
+  */
+
+
+    //싱글 톤 패턴
+    private static Script s_instance=null;   //반환 할 정적 클래스 변수 선언 
+    public static Script instance  //프로퍼티로 반환 (프로퍼티로 반환 시 사용할 클래스에서 Script obj=Script.instance로 불러올 수 있다.)
+    {
+        get
+        {
+            return s_instance;    //컴포넌트가 든 인스턴스를 반환
+        }
+    }
+
+
+    private void Awake()
+    {
+        GameObject go = GameObject.Find("@Mangers");          //오브젝트 중 @Manager오브젝트를 찾음
+        if (s_instance == null)                               //만약 반환 할 인스턴스가 비였을 시 
+        {
+            go = new GameObject { name = "@Managers" };       //빈 @Manager오브젝트를 생성
+            go.AddComponent<Script>();                        //Script 스크립트 컴포넌트를 go에 부착
+        }
+        DontDestroyOnLoad(go);                                // 씬 전환 시에도 유지되게끔 설정
+        s_instance = go.GetComponent<Script>();              //go의 컴포넌트중 Script를 s_instance기입
+    }
+}
