@@ -1,4 +1,5 @@
 static Managers instance; // Managers 클래스의 유일한 인스턴스를 저장하는 정적 변수.
+ResourceManagers _resourcemanager;
 public static Managers Instance // 다른 클래스에서 Managers.Instance로 유일한 인스턴스를 가져올 수 있도록 하는 속성.
 {
     get
@@ -23,6 +24,8 @@ public static Managers Instance // 다른 클래스에서 Managers.Instance로 �
         }
         return instance; // instance를 반환합니다.
     }
+
+public static ResourceManagers Resource{get {return Instance._resourcemanager;}}
 }
 
 
