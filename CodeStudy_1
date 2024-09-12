@@ -1,0 +1,211 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+    [SerializeField]
+    public Define.CameraMode _mode = Define.CameraMode.QuarterView;
+
+    [SerializeField]
+    public Vector3 _delta= new Vector3(0f,6f,-5);
+
+    [SerializeField]
+    public GameObject Player;
+
+    void Start()
+    {
+        Player = GameObject.Find("unitychan");
+    }
+
+    void LateUpdate()
+    {
+        
+
+
+        if(_mode==Define.CameraMode.QuarterView)
+        transform.position = Player.transform.position + _delta;
+        transform.LookAt(Player.transform.position);
+    }
+    public void SetQuaterView(Vector3 delta)
+    {
+        _mode= Define.CameraMode.QuarterView;
+        _delta= delta;
+    }
+}
+
+---------------------------------------------------------------------------
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEngine;
+
+public class ResourcesManagers
+{
+  public T Load<T>(string path)where T:Object
+    {
+        return  Resources.Load<T>(path);
+    }
+
+    public GameObject Instantiate(string path,Transform parent=null)
+    {
+        GameObject prepab= Load<GameObject>($"Prefab/{path}");
+        if(prepab == null)
+        {
+            Debug.Log($"Failed to Load Prefab: {path}");
+            return null;    
+        }
+        return Object.Instantiate(prepab,parent);
+    }
+    public void Destroy(GameObject obj) 
+    {
+        if(obj != null)
+        {
+            return;
+        }
+        Object.Destroy(obj);
+    }
+    
+
+}
+----------------------------------------------------------
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+
+
+public class PlayerController : MonoBehaviour
+{
+    Vector3 destPos;
+    bool moveToDest=false;
+    public float _speed = 10f;
+    void Start()
+    {
+        Managers.Input.KeyAction -= OnKeyboard;
+        Managers.Input.KeyAction += OnKeyboard;
+        Managers.Input.MouseAction -= OnMouseClicked;
+        Managers.Input.MouseAction += OnMouseClicked;
+        
+    }
+    float _yAngle;
+    void Update()
+    {
+        if (moveToDest)
+        {
+            Vector3 dir=destPos-transform.position;
+            if(dir.magnitude<0.0001f)
+            {
+                moveToDest = false;
+            }
+            else
+            {
+                float moveDist=Mathf.Clamp(_speed*Time.deltaTime,0,dir.magnitude);
+                transform.position += dir.normalized *moveDist;
+                if (dir.magnitude > 0.1f)
+                {
+                    transform.LookAt(new Vector3(destPos.x,0,destPos.z));
+                }
+            }
+        }
+        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
+    }
+    private void OnMouseClicked(Define.MouseEvent evt)
+    {
+        if (evt != Define.MouseEvent.Click) return;
+
+        Ray ray=Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(Camera.main.transform.position,ray.direction*100f,Color.red);
+
+        
+        RaycastHit hit;
+
+        if(Physics.Raycast(ray,out hit, 100f, LayerMask.GetMask("Wall")))
+        {
+            Debug.Log(hit.point.y);
+            
+            destPos =hit.point;
+            moveToDest = true;
+        }
+    }
+    void OnKeyboard()
+    {
+        if (Input.GetKey(KeyCode.W))
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.1f);
+            this.transform.position += new Vector3(0f, 0f, 1f) * Time.deltaTime * _speed;
+        }
+        if (Input.GetKey(KeyCode.S))
+
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.1f);
+            this.transform.position += new Vector3(0f, 0f, -1f) * Time.deltaTime * _speed;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.1f);
+            this.transform.position += new Vector3(-1f, 0f, 0f) * Time.deltaTime * _speed;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.1f);
+            this.transform.position += new Vector3(1f, 0f, 0f) * Time.deltaTime * _speed;
+        }
+        moveToDest = false;
+    }
+}
+------------------------------------------------------------------
+\using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using UnityEngine;
+
+public class InputManagers
+{
+    public Action KeyAction=null;
+    public Action<Define.MouseEvent> MouseAction = null;
+
+    bool _pressed=false;
+    public void OnUpdate()
+    {
+        if(Input.anyKey&&KeyAction != null)
+        {
+            KeyAction.Invoke();
+        }
+        if(MouseAction!= null)
+        {
+            if (Input.GetMouseButton(1))
+            {
+                MouseAction.Invoke(Define.MouseEvent.Press);
+                _pressed = true;
+            }
+            else 
+            {
+                if(_pressed)
+                {
+                    MouseAction.Invoke(Define.MouseEvent.Click);
+                    _pressed = false;
+                }
+            }
+        }
+    }
+}
+--------------------------------------------------------
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Define : MonoBehaviour
+{
+    public enum MouseEvent
+    {
+        Press,
+        Click,
+    }
+    public enum CameraMode
+    {
+        QuarterView,
+    }    
+}
