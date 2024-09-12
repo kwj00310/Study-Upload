@@ -207,5 +207,51 @@ public class Define : MonoBehaviour
     public enum CameraMode
     {
         QuarterView,
+
+
+------------------------------------------------------------
+using UnityEngine;
+
+public class Managers : MonoBehaviour
+{
+    static Managers instance;
+    public static Managers Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                GameObject go = GameObject.Find("@Managers");
+                if (go == null)
+                {
+                    go = new GameObject { name = "@Managers" };
+                    instance = go.AddComponent<Managers>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return instance;
+        }
+    }
+
+    InputManagers _input = new InputManagers();
+    public static InputManagers Input { get { return Instance._input; } }
+    ResourcesManagers _resources = new ResourcesManagers();
+    public static ResourcesManagers Resources { get { return Instance._resources; } }
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        _input.OnUpdate();
+    }
+}
+
     }    
 }
