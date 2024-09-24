@@ -32,3 +32,8 @@ public static ResourceManagers Resource{get {return Instance._resourcemanager;}}
 
 
 굳이 GameObject go를 만들어서 넣는 이유는 다음 씬으로 넘어갈 시 Destroy 되기때문에 사라지지않게 끔 만들어준다.
+
+
+
+
+싱글턴패턴은 데드락과 같은 병목현상이 일어나기에 모든걸 매니저에 맡겨선 안되며 최소한으로 해야한다.
